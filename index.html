@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ali Hoseini — Portrait &amp; Commercial Photography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600&family=Inter:wght@300;400;500&family=Cairo:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#050505;
+    --near-black:#0d0d0d;
+    --white:#ffffff;
+    --ivory:#f7f5f2;
+    --gray:#8a8a8a;
+    --gold:#c9a063;
+    --line: rgba(255,255,255,0.14);
+    --line-dark: rgba(0,0,0,0.10);
+    --ease: cubic-bezier(.16,.84,.44,1);
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:auto; }
+
+  body{
+    background:var(--ivory);
+    color:var(--black);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* fixed, heavily blurred, always-looping copy of the hero footage —
+     sits behind every section past the hero, showing softly through
+     the translucent "glass" panels (main, #about, nav, buttons) */
+  #bg-video{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transform:scale(1.15); /* hides the soft edge the blur creates */
+    filter:blur(60px) saturate(1.25) brightness(1.05);
+    opacity:0.55;
+    z-index:-1;
+    pointer-events:none;
+  }
+
+  body[data-lang="fa"] .fa-text,
+  body[data-lang="fa"] .fa-text *{
+    font-family:'Cairo', sans-serif;
+    letter-spacing:0.01em !important;
+  }
+  body[data-lang="fa"] [data-en]{ display:none; }
+  body[data-lang="en"] [data-fa]{ display:none; }
+
+  ::selection{ background:var(--gold); color:var(--black); }
+
+  a{ color:inherit; text-decoration:none; }
+
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    font-size:11px;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color:#6b6b6b;
+    font-weight:500;
+    padding:9px 20px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.55);
+    backdrop-filter:blur(16px) saturate(180%);
+    -webkit-backdrop-filter:blur(16px) saturate(180%);
+    border:1px solid rgba(255,255,255,0.7);
+    box-shadow:
+      0 8px 20px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+
+  /* ============ HERO ============ */
+
+  #hero-spacer{
+    height:230vh; /* matches the shorter ~3s clip — less scroll needed */
+    position:relative;
+  }
+
+  #hero-stage{
+    position:sticky;
+    top:0;
+    height:100vh;
+    width:100%;
+    overflow:hidden;
+    background:var(--ivory);
+  }
+
+  #hero-canvas{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+  }
+
+  #hero-video{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:1;
+    /* stays invisible (and harmless) until videos/hero/hero.mp4 exists */
+  }
+
+  /* pure, gentle opacity fade — the point is that the viewer should
+     never be able to pinpoint the moment it happens */
+  #hero-whiteout{
+    position:absolute;
+    inset:0;
+    background:var(--ivory);
+    opacity:0;
+    pointer-events:none;
+    z-index:5;
+  }
+
+  #hero-glow{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    mix-blend-mode:screen;
+  }
+
+  #hero-type{
+    position:absolute;
+    left:50%;
+    bottom:9%;
+    transform:translateX(-50%);
+    text-align:center;
+    opacity:0;
+    z-index:2;
+    transition:opacity 1.4s var(--ease), transform 1.4s var(--ease);
+    pointer-events:none;
+    width:auto;
+    max-width:90%;
+    padding:26px 44px;
+    background:rgba(15,15,17,0.38);
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:24px;
+    box-shadow:0 16px 40px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  #hero-type.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  #hero-type h1{
+    font-family:'Manrope', sans-serif;
+    font-weight:200;
+    font-size:clamp(24px, 5vw, 46px);
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:#fff;
+  }
+
+  #hero-type p{
+    margin-top:14px;
+    font-size:11px;
+    letter-spacing:0.32em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,0.72);
+    font-weight:300;
+  }
+
+  #hero-hint{
+    position:absolute;
+    left:50%;
+    bottom:6%;
+    transform:translateX(-50%);
+    z-index:2;
+    font-size:10px;
+    letter-spacing:0.3em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,0.8);
+    text-shadow:0 2px 12px rgba(0,0,0,0.5);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    transition:opacity .6s ease;
+  }
+
+  #hero-hint .line{
+    width:1px;
+    height:34px;
+    background:linear-gradient(to bottom, rgba(255,255,255,.85), transparent);
+    animation:hintpulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes hintpulse{
+    0%,100%{ transform:scaleY(1); opacity:.5; }
+    50%{ transform:scaleY(1.3); opacity:1; }
+  }
+
+  /* ============ NAV ============ */
+
+  #nav{
+    position:fixed;
+    top:16px; left:16px; right:16px;
+    z-index:50;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:15px 26px;
+    border-radius:22px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)), rgba(18,18,20,0.38);
+    backdrop-filter:blur(26px) saturate(180%);
+    -webkit-backdrop-filter:blur(26px) saturate(180%);
+    border:1px solid rgba(255,255,255,0.22);
+    box-shadow:
+      0 12px 40px rgba(0,0,0,0.28),
+      inset 0 1px 0 rgba(255,255,255,0.25),
+      inset 0 -1px 0 rgba(0,0,0,0.12);
+    opacity:0;
+    transform:translateY(-14px);
+    pointer-events:none;
+    transition:opacity .8s var(--ease), transform .8s var(--ease);
+  }
+
+  #nav.reveal{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+  }
+
+  #nav .mark{
+    font-family:'Manrope', sans-serif;
+    font-weight:300;
+    font-size:14px;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    color:#fff;
+    cursor:pointer;
+  }
+
+  #nav ul{
+    list-style:none;
+    display:flex;
+    gap:34px;
+  }
+
+  #nav ul li a{
+    font-size:11px;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:#fff;
+    position:relative;
+    padding-bottom:3px;
+  }
+
+  #nav ul li a::after{
+    content:"";
+    position:absolute;
+    left:0; bottom:0;
+    width:0%;
+    height:1px;
+    background:#fff;
+    transition:width .35s var(--ease);
+  }
+
+  #nav ul li a:hover::after{ width:100%; }
+
+  #lang-switch{
+    display:flex;
+    gap:2px;
+    padding:4px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.07);
+    border:1px solid rgba(255,255,255,0.14);
+    font-size:11px;
+    letter-spacing:0.15em;
+    color:#fff;
+  }
+
+  #lang-switch button{
+    background:none;
+    border:none;
+    border-radius:999px;
+    color:#fff;
+    opacity:0.5;
+    cursor:pointer;
+    font-size:11px;
+    padding:6px 14px;
+    letter-spacing:0.15em;
+    font-family:inherit;
+    transition:opacity .3s ease, background .3s ease;
+  }
+
+  #lang-switch button.active{
+    opacity:1;
+    background:rgba(255,255,255,0.18);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+
+  #nav-burger{
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    gap:5px;
+    width:32px;
+    height:32px;
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:0;
+  }
+
+  #nav-burger span{
+    display:block;
+    width:100%;
+    height:1px;
+    background:#fff;
+    transition:transform .3s var(--ease), opacity .3s ease;
+  }
+
+  #nav-burger.open span:first-child{ transform:translateY(3px) rotate(45deg); }
+  #nav-burger.open span:last-child{ transform:translateY(-3px) rotate(-45deg); }
+
+  #mobile-menu{
+    position:fixed;
+    top:86px;
+    left:16px;
+    right:16px;
+    z-index:49;
+    display:none;
+    flex-direction:column;
+    gap:4px;
+    padding:14px;
+    border-radius:20px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)), rgba(18,18,20,0.55);
+    backdrop-filter:blur(26px) saturate(180%);
+    -webkit-backdrop-filter:blur(26px) saturate(180%);
+    border:1px solid rgba(255,255,255,0.22);
+    box-shadow:0 12px 40px rgba(0,0,0,0.28);
+    opacity:0;
+    transform:translateY(-10px);
+    pointer-events:none;
+    transition:opacity .35s var(--ease), transform .35s var(--ease);
+  }
+
+  #mobile-menu.open{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+  }
+
+  #mobile-menu a{
+    padding:14px 10px;
+    font-size:13px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:#fff;
+    border-bottom:1px solid rgba(255,255,255,0.1);
+  }
+
+  #mobile-menu a:last-child{ border-bottom:none; }
+
+  @media (max-width:720px){
+    #nav ul{ display:none; }
+    #nav-burger{ display:flex; }
+    #mobile-menu{ display:flex; }
+  }
+
+
+  /* ============ MAIN CONTENT ============ */
+
+  main{
+    position:relative;
+    background:rgba(247,245,242,0.9);
+    color:var(--black);
+  }
+
+  section{ position:relative; }
+
+  .section-head{
+    padding:120px 5vw 48px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:16px;
+  }
+
+  .section-head h2{
+    font-family:'Manrope', sans-serif;
+    font-weight:300;
+    font-size:clamp(36px, 6vw, 64px);
+    letter-spacing:0.01em;
+  }
+
+  /* ============ PORTFOLIO ============ */
+
+  #portfolio-select{
+    display:flex;
+    height:82vh;
+    gap:22px;
+    padding:20px 22px 46px;
+  }
+
+  .cat-tile{
+    position:relative;
+    flex:1;
+    overflow:hidden;
+    border:none;
+    border-radius:14px;
+    padding:0;
+    cursor:pointer;
+    background:#111;
+    transform:translateY(-6px);
+    box-shadow:
+      0 30px 60px -22px rgba(0,0,0,0.38),
+      0 12px 24px -12px rgba(0,0,0,0.20);
+    transition:transform .5s var(--ease), box-shadow .5s var(--ease);
+  }
+
+  .cat-tile:hover{
+    transform:translateY(-12px);
+    box-shadow:
+      0 40px 80px -20px rgba(0,0,0,0.42),
+      0 16px 30px -12px rgba(0,0,0,0.24);
+  }
+
+  .cat-tile img{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    filter:grayscale(0.5) brightness(0.7);
+    transform:scale(1.04);
+    transition:transform 1.4s var(--ease), filter 1.4s var(--ease);
+  }
+
+  .cat-tile::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(to top, rgba(0,0,0,0.45), rgba(0,0,0,0.05) 45%);
+  }
+
+  .cat-tile:hover img{
+    transform:scale(1.0);
+    filter:grayscale(0) brightness(0.85);
+  }
+
+  .cat-label{
+    position:absolute;
+    left:50%;
+    bottom:36px;
+    transform:translateX(-50%);
+    z-index:2;
+    color:#fff;
+    font-family:'Manrope', sans-serif;
+    font-weight:300;
+    font-size:clamp(15px,1.6vw,19px);
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    white-space:nowrap;
+    padding:14px 30px;
+    border-radius:999px;
+    background:rgba(20,20,22,0.28);
+    backdrop-filter:blur(18px) saturate(160%);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);
+    border:1px solid rgba(255,255,255,0.24);
+    box-shadow:
+      0 10px 30px rgba(0,0,0,0.28),
+      inset 0 1px 0 rgba(255,255,255,0.2);
+    transition:background .4s ease;
+  }
+
+  .cat-tile:hover .cat-label{
+    background:rgba(20,20,22,0.42);
+  }
+
+  @media (max-width:820px){
+    #portfolio-select{ flex-direction:column; height:auto; }
+    .cat-tile{ height:46vh; flex:none; }
+  }
+
+  /* ---- gallery (single-column, minimal, one work at a time) ---- */
+
+  #portfolio-select{
+    transition:opacity .45s ease, transform .5s var(--ease);
+  }
+
+  #portfolio-select.fade-out{
+    opacity:0;
+    transform:translateY(-18px) scale(0.985);
+    pointer-events:none;
+  }
+
+  #portfolio-select.hidden{ display:none; }
+
+  #portfolio-gallery{
+    display:none;
+    padding:0 0 40px;
+    opacity:0;
+    transform:translateY(24px);
+    transition:opacity .55s ease, transform .6s var(--ease);
+  }
+
+  #portfolio-gallery.active{ display:block; }
+  #portfolio-gallery.shown{ opacity:1; transform:translateY(0); }
+
+  /* ---- generic scroll-reveal: fades + rises into place as it enters
+     the viewport, staggered per element via transition-delay ---- */
+  .reveal-up{
+    opacity:0;
+    transform:translateY(38px) scale(0.98);
+    transition:opacity 1s var(--ease), transform 1s var(--ease);
+  }
+  .reveal-up.in-view{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+
+  #gallery-back{
+    position:sticky;
+    top:24px;
+    z-index:8;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(255,255,255,0.6);
+    backdrop-filter:blur(14px) saturate(180%);
+    -webkit-backdrop-filter:blur(14px) saturate(180%);
+    border:1px solid rgba(255,255,255,0.7);
+    border-radius:999px;
+    padding:11px 22px;
+    cursor:pointer;
+    margin:0 0 70px 5vw;
+    font-family:'Inter', sans-serif;
+    font-size:11px;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    color:var(--black);
+    opacity:0.75;
+    box-shadow:
+      0 8px 20px rgba(0,0,0,0.1),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+    transition:opacity .3s ease, background .3s ease;
+  }
+
+  #gallery-back:hover{ opacity:1; background:rgba(255,255,255,0.75); }
+
+  #gallery-title{
+    font-family:'Manrope', sans-serif;
+    font-weight:300;
+    font-size:clamp(22px,3vw,34px);
+    letter-spacing:0.02em;
+    margin:0 5vw 80px;
+  }
+
+  #gallery-stack{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14vh;
+  }
+
+  #gallery-stack figure{
+    width:min(74vw, 980px);
+    overflow:hidden;
+    border-radius:10px;
+  }
+
+  #gallery-stack img{
+    width:100%;
+    display:block;
+    object-fit:cover;
+    filter:grayscale(0.1) contrast(1.04);
+  }
+
+  @media (max-width:820px){
+    #gallery-stack figure{ width:92vw; }
+    #gallery-stack{ gap:9vh; }
+  }
+
+  /* ============ ABOUT ============ */
+
+  /* ============ CERTIFICATES (minimal auto-scroll slider) ============ */
+
+  #certificates .section-head{
+    padding:56px 5vw 8px;
+  }
+
+  #cert-track-wrap{
+    overflow:hidden;
+    padding:26px 0 54px;
+    perspective:1000px;
+    -webkit-mask-image:linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    mask-image:linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+
+  #cert-track{
+    display:flex;
+    align-items:center;
+    gap:26px;
+    width:max-content;
+    animation:certScroll 24s linear infinite;
+  }
+
+  #cert-track-wrap:hover #cert-track{
+    animation-play-state:paused;
+  }
+
+  @keyframes certScroll{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
+
+  .cert-card{
+    flex:none;
+    width:150px;
+    height:104px;
+    border-radius:10px;
+    overflow:hidden;
+    background:linear-gradient(135deg, #f2f0ec, #e7e4de);
+    box-shadow:0 16px 32px -16px rgba(0,0,0,0.22);
+    transform:rotateY(10deg);
+    transition:transform .5s var(--ease), box-shadow .5s var(--ease);
+  }
+
+  .cert-card:nth-child(even){ transform:rotateY(-10deg); }
+
+  .cert-card:hover{
+    transform:rotateY(0deg) scale(1.06);
+    box-shadow:0 22px 46px -14px rgba(0,0,0,0.3);
+  }
+
+  .cert-card img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  @media (max-width:640px){
+    .cert-card{ width:120px; height:84px; }
+    #cert-track{ gap:18px; }
+  }
+
+  #about{
+    background:rgba(6,6,7,0.72);
+    color:var(--ivory);
+  }
+
+  #about .section-head h2{ color:var(--ivory); }
+
+  #about-grid{
+    display:grid;
+    grid-template-columns:0.45fr 1fr;
+    gap:0;
+    padding-bottom:140px;
+    align-items:center;
+  }
+
+  #about-grid figure{
+    height:38vh;
+    overflow:hidden;
+    margin-left:5vw;
+    border-radius:10px;
+  }
+
+  #about-grid img{
+    width:100%; height:100%; object-fit:cover;
+    filter:grayscale(0.4) contrast(1.05);
+  }
+
+  #about-copy{
+    padding:6vh 6vw 0 6vw;
+    max-width:560px;
+    align-self:center;
+  }
+
+  #about-copy p{
+    font-family:'Manrope', sans-serif;
+    font-weight:400;
+    font-style:normal;
+    font-size:clamp(17px,1.7vw,21px);
+    line-height:1.75;
+    letter-spacing:0.005em;
+    color:#ddd;
+    margin-bottom:24px;
+  }
+
+  #about-copy .sign{
+    margin-top:30px;
+    font-family:'Inter';
+    font-size:11px;
+    letter-spacing:0.25em;
+    text-transform:uppercase;
+    color:var(--gold);
+  }
+
+  @media (max-width:820px){
+    #about-grid{ grid-template-columns:1fr; }
+    #about-grid figure{ margin:0 5vw; height:30vh; }
+    #about-copy{ padding:60px 6vw; }
+  }
+
+  /* ============ CONTACT ============ */
+
+  #contact{
+    padding:160px 5vw 100px;
+    text-align:center;
+  }
+
+  #contact h2{
+    font-family:'Manrope', sans-serif;
+    font-weight:200;
+    letter-spacing:0.02em;
+    font-size:clamp(34px,6vw,72px);
+    margin-bottom:60px;
+  }
+
+  #contact-links{
+    display:flex;
+    justify-content:center;
+    gap:22px;
+    flex-wrap:wrap;
+    margin-bottom:120px;
+  }
+
+  #contact-links a{
+    font-size:13px;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    border-radius:999px;
+    padding:16px 34px;
+    background:rgba(255,255,255,0.5);
+    backdrop-filter:blur(16px) saturate(180%);
+    -webkit-backdrop-filter:blur(16px) saturate(180%);
+    border:1px solid rgba(255,255,255,0.7);
+    box-shadow:
+      0 10px 26px rgba(0,0,0,0.07),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+    transition:opacity .3s ease, background .3s ease, transform .3s var(--ease), box-shadow .3s ease;
+    opacity:0.85;
+  }
+
+  #contact-links a:hover{
+    opacity:1;
+    background:rgba(255,255,255,0.78);
+    transform:translateY(-3px);
+    box-shadow:
+      0 16px 36px rgba(0,0,0,0.1),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+
+  footer{
+    text-align:center;
+    font-size:10px;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--gray);
+    padding-bottom:40px;
+  }
+
+  /* ============ BACK-TO-TOP (floating, always available) ============ */
+
+  #back-to-top{
+    position:fixed;
+    bottom:28px;
+    right:28px;
+    z-index:60;
+    width:54px;
+    height:54px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,0.22);
+    background:rgba(18,18,20,0.4);
+    backdrop-filter:blur(22px) saturate(180%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    box-shadow:
+      0 12px 32px rgba(0,0,0,0.28),
+      inset 0 1px 0 rgba(255,255,255,0.22);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    opacity:0;
+    transform:scale(0.4) translateY(16px);
+    pointer-events:none;
+    transition:opacity .45s var(--ease), transform .45s var(--ease), background .3s ease;
+  }
+
+  #back-to-top.show{
+    opacity:1;
+    transform:scale(1) translateY(0);
+    pointer-events:auto;
+  }
+
+  #back-to-top:hover{
+    background:rgba(18,18,20,0.6);
+    transform:scale(1.08) translateY(-2px);
+  }
+
+  #back-to-top svg{
+    width:15px;
+    height:15px;
+    fill:#fff;
+    transition:transform .3s var(--ease);
+  }
+
+  #back-to-top:hover svg{
+    transform:translateY(-2px);
+  }
+
+  @media (max-width:640px){
+    #back-to-top{ bottom:18px; right:18px; width:48px; height:48px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
+  }
+</style>
+</head>
+<body data-lang="en">
+
+  <video id="bg-video" autoplay muted loop playsinline aria-hidden="true">
+    <source src="videos/hero/hero.mp4" type="video/mp4">
+  </video>
+
+  <nav id="nav">
+    <a href="#" id="nav-home" class="mark fa-text">
+      <span data-en>ALI HOSEINI</span>
+      <span data-fa>علی حسینی</span>
+    </a>
+    <ul class="fa-text">
+      <li><a href="#portfolio" data-en>Portfolio</a><a href="#portfolio" data-fa>نمونه‌کارها</a></li>
+      <li><a href="#about" data-en>About</a><a href="#about" data-fa>درباره</a></li>
+      <li><a href="#contact" data-en>Contact</a><a href="#contact" data-fa>تماس</a></li>
+    </ul>
+    <div id="lang-switch">
+      <button id="btn-en" class="active">EN</button>
+      <span style="opacity:.3">/</span>
+      <button id="btn-fa">FA</button>
+    </div>
+    <button id="nav-burger" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </nav>
+
+  <div id="mobile-menu" class="fa-text">
+    <a href="#portfolio" data-en>Portfolio</a><a href="#portfolio" data-fa>نمونه‌کارها</a>
+    <a href="#about" data-en>About</a><a href="#about" data-fa>درباره</a>
+    <a href="#contact" data-en>Contact</a><a href="#contact" data-fa>تماس</a>
+  </div>
+
+  <div id="hero-spacer">
+    <div id="hero-stage">
+      <video id="hero-video" muted playsinline preload="auto">
+        <source src="videos/hero/hero.mp4" type="video/mp4">
+      </video>
+      <div id="hero-whiteout"></div>
+      <div id="hero-type">
+        <h1>Ali Hoseini</h1>
+        <p class="fa-text">
+          <span data-en>Portrait &amp; Commercial Photography</span>
+          <span data-fa>عکاسی پرتره و تجاری</span>
+        </p>
+      </div>
+      <div id="hero-hint" class="fa-text">
+        <span data-en>Scroll</span>
+        <span data-fa>اسکرول کنید</span>
+        <div class="line"></div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <section id="portfolio">
+      <div class="section-head fa-text">
+        <h2 data-en>Portfolio</h2>
+        <h2 data-fa>نمونه‌کارها</h2>
+        <span class="eyebrow fa-text">
+          <span data-en>Selected Works — 2020 / 2026</span>
+          <span data-fa>آثار برگزیده — ۲۰۲۰ / ۲۰۲۶</span>
+        </span>
+      </div>
+      <div id="portfolio-select">
+        <button class="cat-tile" data-cat="portrait">
+          <img src="images/portfolio/portrait/cover.jpg" alt="">
+          <span class="cat-label fa-text">
+            <span data-en>Portrait</span>
+            <span data-fa>پرتره</span>
+          </span>
+        </button>
+        <button class="cat-tile" data-cat="commercial">
+          <img src="images/portfolio/commercial/cover.jpg" alt="">
+          <span class="cat-label fa-text">
+            <span data-en>Commercial</span>
+            <span data-fa>تبلیغاتی</span>
+          </span>
+        </button>
+      </div>
+
+      <div id="portfolio-gallery">
+        <button id="gallery-back" class="fa-text">
+          <span data-en>← Back</span>
+          <span data-fa>→ بازگشت</span>
+        </button>
+        <h3 id="gallery-title" class="fa-text"></h3>
+        <div id="gallery-stack"></div>
+      </div>
+    </section>
+
+    <section id="certificates">
+      <div class="section-head fa-text">
+        <h2 data-en>Certificates</h2>
+        <h2 data-fa>گواهی‌نامه‌ها</h2>
+      </div>
+      <div id="cert-track-wrap">
+        <div id="cert-track">
+          <div class="cert-card"><img src="images/certificates/01.jpg" alt="Certificate 1"></div>
+          <div class="cert-card"><img src="images/certificates/02.jpg" alt="Certificate 2"></div>
+          <div class="cert-card"><img src="images/certificates/03.jpg" alt="Certificate 3"></div>
+          <div class="cert-card"><img src="images/certificates/04.jpg" alt="Certificate 4"></div>
+          <div class="cert-card"><img src="images/certificates/05.jpg" alt="Certificate 5"></div>
+          <div class="cert-card"><img src="images/certificates/06.jpg" alt="Certificate 6"></div>
+          <!-- duplicated set — makes the scroll loop seamless -->
+          <div class="cert-card" aria-hidden="true"><img src="images/certificates/01.jpg" alt=""></div>
+          <div class="cert-card" aria-hidden="true"><img src="images/certificates/02.jpg" alt=""></div>
+          <div class="cert-card" aria-hidden="true"><img src="images/certificates/03.jpg" alt=""></div>
+          <div class="cert-card" aria-hidden="true"><img src="images/certificates/04.jpg" alt=""></div>
+          <div class="cert-card" aria-hidden="true"><img src="images/certificates/05.jpg" alt=""></div>
+          <div class="cert-card" aria-hidden="true"><img src="images/certificates/06.jpg" alt=""></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about">
+      <div class="section-head fa-text">
+        <h2 data-en>About</h2>
+        <h2 data-fa>درباره</h2>
+      </div>
+      <div id="about-grid">
+        <figure>
+          <img src="images/about/portrait.jpg" alt="Portrait of Ali Hoseini" loading="lazy">
+        </figure>
+        <div id="about-copy" class="fa-text">
+          <p data-en>I am not merely a photographer. I capture moments intended to endure — the instant a person stops performing and simply becomes themselves.</p>
+          <p data-en>The same principle guides my commercial work: an honest photograph of your product, made to help people understand it, and to draw them toward it.</p>
+          <p data-en>This work is carried out under my studio, ROOK.</p>
+          <p data-fa>من صرفاً یک عکاس نیستم؛ من لحظه‌ای را ثبت می‌کنم که ماندگار بماند — همان لحظه‌ای که فرد دیگر بازی نمی‌کند و خودِ واقعی‌اش را نشان می‌دهد.</p>
+          <p data-fa>در عکاسی تبلیغاتی نیز همین اصل را دنبال می‌کنم: تصویری صادقانه از محصول شما، برای درک بهتر آن و جذب مشتری.</p>
+          <p data-fa>این مسیر را زیر نام استودیوی خودم، روک (ROOK)، دنبال می‌کنم.</p>
+          <div class="sign">Ali Hoseini — ROOK Studio</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <h2 class="fa-text">
+        <span data-en>Let's&nbsp;Talk</span>
+        <span data-fa>بیایید صحبت کنیم</span>
+      </h2>
+      <div id="contact-links">
+        <a href="https://instagram.com/rookads" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://t.me/alih1202" target="_blank" rel="noopener">Telegram</a>
+        <a href="mailto:alihoseiniphotography@gmail.com">Email</a>
+      </div>
+      <footer class="fa-text">
+        <span data-en>&copy; 2026 Ali Hoseini Photography — ROOK Studio</span>
+        <span data-fa>© ۲۰۲۶ علی حسینی — استودیو روک (ROOK)</span>
+      </footer>
+    </section>
+  </main>
+
+  <button id="back-to-top" aria-label="Back to top">
+    <svg viewBox="0 0 24 24"><path d="M12 5l8 12H4z"/></svg>
+  </button>
+
+<script>
+(function(){
+  /* ==================================================================
+     HERO — solid black, name + tagline, scroll-driven fade to white.
+     ------------------------------------------------------------------
+     A <video id="hero-video"> is already wired up below to
+     videos/hero/hero.mp4 and scrubbed frame-by-frame with scroll via
+     `smoothRaw` (0..1). Until that file exists, the video element is
+     simply empty/invisible and the hero just shows the black + text as
+     before — nothing to break.
+  ================================================================== */
+
+  const stage = document.getElementById('hero-stage');
+  const spacer = document.getElementById('hero-spacer');
+  const typeEl = document.getElementById('hero-type');
+  const hintEl = document.getElementById('hero-hint');
+  const navEl = document.getElementById('nav');
+  const heroVideo = document.getElementById('hero-video');
+
+  let videoReady = false;
+  heroVideo.addEventListener('loadedmetadata', () => {
+    heroVideo.pause();     // never autoplay — scroll drives every frame
+    videoReady = true;
+  });
+  heroVideo.addEventListener('error', () => { videoReady = false; }); // no file yet — fine, hero just stays black
+
+  let targetRaw = 0;
+  let smoothRaw = 0;
+  let typeShown = false;
+  let navShown = false;
+
+  function onScroll(){
+    const rect = spacer.getBoundingClientRect();
+    const total = spacer.offsetHeight - window.innerHeight;
+    const scrolled = -rect.top;
+    targetRaw = Math.min(Math.max(scrolled / total, 0), 1);
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  onScroll();
+
+  function tick(){
+    // heavy-but-smooth scrubbing: lerp toward target
+    smoothRaw += (targetRaw - smoothRaw) * 0.035;
+    if (Math.abs(smoothRaw - targetRaw) < 0.0004) smoothRaw = targetRaw;
+
+    // scrub the video frame-by-frame with scroll, the moment it's loaded
+    if (videoReady && heroVideo.duration){
+      heroVideo.currentTime = smoothRaw * (heroVideo.duration - 0.05);
+    }
+
+    // reveal the name + tagline shortly after
+    if (smoothRaw > 0.2 && !typeShown){
+      typeShown = true;
+      typeEl.classList.add('show');
+    } else if (smoothRaw <= 0.15 && typeShown){
+      typeShown = false;
+      typeEl.classList.remove('show');
+    }
+
+    // the black-to-white fade has been removed for now — the hero stays
+    // solid black like before. Once a real video/frame-sequence is
+    // dropped into #hero-stage, drive it here off `smoothRaw` (0..1).
+
+    // fade the scroll hint once movement begins
+    hintEl.style.opacity = smoothRaw > 0.03 ? '0' : '1';
+
+    // reveal nav only once hero has fully completed
+    if (smoothRaw > 0.985 && !navShown){
+      navShown = true;
+      navEl.classList.add('reveal');
+    } else if (smoothRaw < 0.96 && navShown){
+      navShown = false;
+      navEl.classList.remove('reveal');
+    }
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  /* ==================================================================
+     PORTFOLIO — two minimal categories, each opening a single-column,
+     one-work-at-a-time gallery (placeholder imagery)
+  ================================================================== */
+  const CATEGORIES = {
+    portrait: {
+      title: { en: 'Portrait', fa: 'پرتره' },
+      folder: 'images/portfolio/portrait/',
+      // put your files in that folder named exactly 01.jpg ... 06.jpg
+      // (add/remove lines here to match however many photos you have)
+      shots: ['01.jpg', '02.jpg', '03.jpg', '04.jpg', '05.jpg', '06.jpg']
+    },
+    commercial: {
+      title: { en: 'Commercial', fa: 'تبلیغاتی' },
+      folder: 'images/portfolio/commercial/',
+      shots: ['01.jpg', '02.jpg', '03.jpg', '04.jpg', '05.jpg', '06.jpg']
+    }
+  };
+
+  const selectEl = document.getElementById('portfolio-select');
+  const galleryEl = document.getElementById('portfolio-gallery');
+  const galleryTitle = document.getElementById('gallery-title');
+  const galleryStack = document.getElementById('gallery-stack');
+  const galleryBack = document.getElementById('gallery-back');
+
+  function currentLang(){ return document.body.dataset.lang; }
+
+  function openCategory(cat){
+    const data = CATEGORIES[cat];
+    if (!data) return;
+
+    galleryTitle.textContent = data.title[currentLang()];
+    galleryTitle.dataset.cat = cat;
+
+    galleryStack.innerHTML = data.shots.map((file, i) => `
+      <figure class="reveal-up" style="transition-delay:${i*0.09}s">
+        <img src="${data.folder}${file}" alt="" loading="lazy">
+      </figure>
+    `).join('');
+
+    // crossfade out the selector, then crossfade+slide the gallery in
+    selectEl.classList.add('fade-out');
+    setTimeout(() => {
+      selectEl.classList.add('hidden');
+      galleryEl.classList.add('active');
+      requestAnimationFrame(() => {
+        galleryEl.classList.add('shown');
+        observeReveals(galleryStack);
+      });
+    }, 420);
+
+    document.getElementById('portfolio').scrollIntoView({ behavior:'smooth', block:'start' });
+    history.replaceState(null, '', '#portfolio-' + cat);
+  }
+
+  function closeGallery(){
+    galleryEl.classList.remove('shown');
+    setTimeout(() => {
+      galleryEl.classList.remove('active');
+      selectEl.classList.remove('hidden');
+      requestAnimationFrame(() => selectEl.classList.remove('fade-out'));
+    }, 420);
+
+    document.getElementById('portfolio').scrollIntoView({ behavior:'smooth', block:'start' });
+    history.replaceState(null, '', '#portfolio');
+  }
+
+  document.querySelectorAll('.cat-tile').forEach(btn => {
+    btn.addEventListener('click', () => openCategory(btn.dataset.cat));
+  });
+  galleryBack.addEventListener('click', closeGallery);
+
+  // keep the open gallery's title translated if the language is switched mid-view
+  const langObserver = new MutationObserver(() => {
+    const cat = galleryTitle.dataset.cat;
+    if (cat && CATEGORIES[cat]) galleryTitle.textContent = CATEGORIES[cat].title[currentLang()];
+  });
+  langObserver.observe(document.body, { attributes:true, attributeFilter:['data-lang'] });
+
+  /* ==================================================================
+     LANGUAGE SWITCH
+  ================================================================== */
+  const btnEn = document.getElementById('btn-en');
+  const btnFa = document.getElementById('btn-fa');
+  function setLang(lang){
+    document.body.dataset.lang = lang;
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
+    btnEn.classList.toggle('active', lang === 'en');
+    btnFa.classList.toggle('active', lang === 'fa');
+  }
+  btnEn.addEventListener('click', () => setLang('en'));
+  btnFa.addEventListener('click', () => setLang('fa'));
+
+  // mobile hamburger menu
+  const navBurger = document.getElementById('nav-burger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  navBurger.addEventListener('click', () => {
+    navBurger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      navBurger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+    });
+  });
+
+  /* ==================================================================
+     SCROLL-REVEAL — sections, cards and images rise + fade into place
+     as they enter the viewport, staggered where they're grouped
+  ================================================================== */
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        entry.target.classList.add('in-view');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold:0.15, rootMargin:'0px 0px -8% 0px' });
+
+  function observeReveals(root){
+    root.querySelectorAll('.reveal-up:not(.in-view)').forEach(el => revealObserver.observe(el));
+  }
+
+  // tag the static content that should animate in on first scroll
+  document.querySelectorAll(
+    '.section-head, #portfolio-select .cat-tile, #about-grid figure, #about-copy, #contact h2, #contact-links a'
+  ).forEach((el, i) => {
+    el.classList.add('reveal-up');
+    if (el.matches('#contact-links a')) el.style.transitionDelay = (i * 0.08) + 's';
+  });
+  observeReveals(document);
+
+  document.getElementById('nav-home').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+
+  /* ==================================================================
+     BACK-TO-TOP — a floating button that's always reachable, once the
+     visitor has scrolled past the opening black screen. Takes them
+     straight back to the very top (home) with a smooth animated scroll.
+  ================================================================== */
+  const backToTopEl = document.getElementById('back-to-top');
+
+  function updateBackToTop(){
+    const past = window.scrollY > window.innerHeight * 0.85;
+    backToTopEl.classList.toggle('show', past);
+  }
+  window.addEventListener('scroll', updateBackToTop, { passive:true });
+  updateBackToTop();
+
+  backToTopEl.addEventListener('click', () => {
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+
+  /* ==================================================================
+     ELASTIC SCROLL — adds a soft, heavy inertia to desktop wheel
+     scrolling (trackpad/mouse), similar to the momentum feel on sites
+     like agentura.framer.website. Real document scroll position keeps
+     being the source of truth (so the sticky hero keeps working
+     natively) — this just eases *how* it gets there.
+     Left untouched on touch devices, where native momentum already
+     feels right.
+  ================================================================== */
+  if (window.matchMedia('(pointer: fine)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    let scrollTarget = window.scrollY;
+    let scrollCurrent = window.scrollY;
+    let animating = false;
+
+    function maxScroll(){
+      return document.documentElement.scrollHeight - window.innerHeight;
+    }
+
+    function step(){
+      scrollCurrent += (scrollTarget - scrollCurrent) * 0.08;
+      if (Math.abs(scrollTarget - scrollCurrent) < 0.4){
+        scrollCurrent = scrollTarget;
+        window.scrollTo(0, scrollCurrent);
+        animating = false;
+        return;
+      }
+      window.scrollTo(0, scrollCurrent);
+      requestAnimationFrame(step);
+    }
+
+    window.addEventListener('wheel', (e) => {
+      scrollTarget = Math.max(0, Math.min(maxScroll(), scrollTarget + e.deltaY));
+      e.preventDefault();
+      if (!animating){
+        animating = true;
+        requestAnimationFrame(step);
+      }
+    }, { passive:false });
+
+    // stay in sync if the position changes some other way (keyboard,
+    // scrollbar drag, in-page anchor jumps like the gallery back button)
+    window.addEventListener('scroll', () => {
+      if (!animating){
+        scrollTarget = window.scrollY;
+        scrollCurrent = window.scrollY;
+      }
+    }, { passive:true });
+  }
+
+})();
+</script>
+</body>
+</html>

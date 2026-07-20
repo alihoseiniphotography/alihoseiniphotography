@@ -860,7 +860,7 @@
 
   <div id="hero-spacer">
     <div id="hero-stage">
-      <video id="hero-video" muted playsinline preload="auto">
+      <video id="hero-video" muted playsinline webkit-playsinline="true" preload="auto">
         <source src="videos/hero/hero.mp4" type="video/mp4">
       </video>
       <div id="hero-whiteout"></div>
@@ -1003,8 +1003,24 @@
 
   let videoReady = false;
   heroVideo.addEventListener('loadedmetadata', () => {
-    heroVideo.pause();     // never autoplay — scroll drives every frame
-    videoReady = true;
+    // mobile browsers (especially iOS Safari) won't render frames from
+    // currentTime seeks until the video has been "unlocked" by an actual
+    // play() call — so we briefly play it (muted, inaudible either way)
+    // and immediately pause it, then hand full control over to scroll.
+    const playPromise = heroVideo.play();
+    if (playPromise && playPromise.then){
+      playPromise.then(() => {
+        heroVideo.pause();
+        videoReady = true;
+      }).catch(() => {
+        // even if play() was blocked, seeking may still work on most
+        // browsers, so don't give up — just mark ready anyway
+        videoReady = true;
+      });
+    } else {
+      heroVideo.pause();
+      videoReady = true;
+    }
   });
   heroVideo.addEventListener('error', () => { videoReady = false; }); // no file yet — fine, hero just stays black
 
